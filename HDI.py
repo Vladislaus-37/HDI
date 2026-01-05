@@ -18,8 +18,8 @@ file.close()
 
 name_alias=[]
 com_alias=[]
-sys_build='BETA.020126.3'
-sys_ver='β10'
+sys_build='BETA.050126.1'
+sys_ver='β11'
 
 def main():
     # Output Header
@@ -34,7 +34,9 @@ def main():
         Cow_Herder(cow)
 
 def Cow_Herder(cow_list):
-    if cow_list[0]=='index': # Index command
+    if cow_list[0] in name_alias:
+        run_alias(cow_list[1:])
+    elif cow_list[0]=='index': # Index command
         index()
 
     elif cow_list[0]=='read': # Read txt file
@@ -47,8 +49,6 @@ def Cow_Herder(cow_list):
         chdir(cow_list[1:])
 
     elif cow_list[0]=='exit': # For haters)
-        print('Wait 4 seconds')
-        time.sleep(3)
         print('Good bye!')
         time.sleep(1)
         sys.exit()
@@ -75,12 +75,16 @@ def Cow_Herder(cow_list):
         print('  alias   [name] [com]|[com]      - Create alias for command or commands group')
         print('  calc    [expr]                  - Calculate mathematical expression,' \
         'also with python operands and functions with math lib')
+        print('  clear                           - Clear output')
 
     elif cow_list[0]=='delfile': # Delete file
         delfile(cow_list[1:])
 
     elif cow_list[0]=='deldir': # Delete dir
         deldir(cow_list[1:])
+
+    elif cow_list[0]=='clear':
+        clear()
 
     elif cow_list[0]=='renm': # Rename file or dir
         rename(cow_list[1:])
@@ -149,7 +153,9 @@ def Cow_Herder(cow_list):
         123
 
     else: # This SYNTAX else)
-        run_alias(cow_list)
+        print('')
+        print(colorama.Fore.LIGHTRED_EX + '    SYNTAX_ERR')
+        print(colorama.Fore.WHITE + '')
     return 0
 
 def index():    # Index command
@@ -169,6 +175,15 @@ def index():    # Index command
         print(colorama.Fore.LIGHTRED_EX + '    INDEX_ERR')
         print(colorama.Fore.WHITE + '    May be path of dir is invalid')
         print('    Or your system is do not supported')
+    return 0
+
+def clear():
+    if platform.system() == 'Darwin':       # for macOS
+        os.system('clear')
+    elif platform.system() == 'Windows':    # for Windows
+        os.system(('cls'))
+    else:                                   # for Pinguins
+        os.system(('clear'))
     return 0
 
 def read(File):     # Read txt file
@@ -270,7 +285,7 @@ def copy(File):     # Copy file
 # Run fms script
 def fms(path):
     try:
-        with open(path+'.fms', 'r', encoding='utf-8') as file:
+        with open(path+'.fms', 'r', encoding='utf-16') as file:
             script = file.readlines()
             file.close()
         for i in script:
@@ -307,14 +322,14 @@ def add_alias(name_com):
 # Run Alias code
 def run_alias(name):
     global name_alias, com_alias
-    if name[0] not in name_alias:
-        print('')
-        print(colorama.Fore.LIGHTRED_EX + '    SYNTAX_ERR')
-        print(colorama.Fore.WHITE + '')
-    else:
+    try:
         comands=com_alias[name_alias.index(name[0])]
         for i in comands:
             Cow_Herder(i.split(' '))
+    except:
+        print(colorama.Fore.LIGHTRED_EX + '    ALIAS_ERR')
+        print(colorama.Fore.WHITE + '    May be alias was broken')
+        print('    Or script will be wrong')
 
 # Run Part  
 if sys.argv[-1]!=sys.argv[0]:
@@ -323,6 +338,7 @@ if sys.argv[-1]!=sys.argv[0]:
     else:
         main()
 else:
+    fms('boot')
     main()
 
 # by TR37 https://t.me/tr333777

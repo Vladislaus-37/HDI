@@ -11,6 +11,8 @@ import math
 import time
 colorama.init()
 
+SCRIPTDIR=os.getcwd()+'/SCRIPTS/'
+
 # Read config file
 with open("config.conf", 'r', encoding='utf-8') as file:
     configdata = file.readlines()
@@ -18,8 +20,8 @@ file.close()
 
 name_alias=[]
 com_alias=[]
-sys_build='BETA.050126.1'
-sys_ver='β11'
+sys_build='RELIASE.100126.1'
+sys_ver='1.0'
 
 def main():
     # Output Header
@@ -285,15 +287,48 @@ def copy(File):     # Copy file
 # Run fms script
 def fms(path):
     try:
-        with open(path+'.fms', 'r', encoding='utf-16') as file:
-            script = file.readlines()
-            file.close()
-        for i in script:
+        # Проверяем полный путь или относительный
+        if not os.path.isabs(path):
+            # Проверяем существование файла
+            if not os.path.exists(path + '.fms'):
+                # Проверяем в директории скрипта
+                script_path = os.path.join(SCRIPTDIR, path + '.fms')
+                if os.path.exists(script_path):
+                    path = script_path
+                else:
+                    print(f"File not found: {path}.fms")
+                    return
+            else:
+                path = path + '.fms'
+        else:
+            if not path.endswith('.fms'):
+                path = path + '.fms'
+        
+        # Пробуем разные кодировки
+        encodings = ['utf-8', 'utf-16', 'cp1251']
+        content = None
+        
+        for encoding in encodings:
+            try:
+                with open(path, 'r', encoding=encoding) as file:
+                    script = file.readlines()
+                    content = script
+                    break
+            except UnicodeDecodeError:
+                continue
+                
+        if content is None:
+            print(f"Cannot read file with any encoding: {path}")
+            return
+            
+        for i in content:
             Cow_Herder(i.rstrip('\n').split(' '))
-    except:
-        print(colorama.Fore.LIGHTRED_EX + '    FSM_ERR')
-        print(colorama.Fore.WHITE + '    May be name of script is invalid')
-        print('    Or script will be wrong')
+    except FileNotFoundError:
+        print(colorama.Fore.LIGHTRED_EX + f'    FMS_ERR: File not found')
+        print(colorama.Fore.WHITE + f'    {path}')
+    except Exception as e:
+        print(colorama.Fore.LIGHTRED_EX + '    FMS_ERR')
+        print(colorama.Fore.WHITE + f'    Error: {str(e)}')
 
 # Run py file or execute python strings
 def pyexe(pyexe_pe):
@@ -332,13 +367,31 @@ def run_alias(name):
         print('    Or script will be wrong')
 
 # Run Part  
-if sys.argv[-1]!=sys.argv[0]:
-    if sys.argv[1]=='fms':
-        fms(' '.join(sys.argv[2:]))
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        if sys.argv[1] == 'fms':
+            if len(sys.argv) > 2:
+                fms(' '.join(sys.argv[2:]))
+            else:
+                print("Usage: fms <script_name>")
+        else:
+            # Run boot.fms before main() if he exist
+            boot_path = os.path.join(SCRIPTDIR, "boot.fms")
+            if os.path.exists(boot_path):
+                try:
+                    fms(boot_path)
+                except:
+                    print("Could not run boot.fms, continuing...")
+            main()
     else:
+        # Autorun boot.fms if he exist
+        boot_path = os.path.join(SCRIPTDIR, "boot.fms")
+        if os.path.exists(boot_path):
+            try:
+                fms(boot_path)
+            except Exception as e:
+                print(f"Boot error: {e}")
+                print("Continuing to main...")
         main()
-else:
-    fms('boot')
-    main()
 
 # by TR37 https://t.me/tr333777

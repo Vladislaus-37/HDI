@@ -1,3 +1,1 @@
 HDI it`s a simple open sourse console file manager based on Python3
-
-{IN DEVELOPERMENT!!}
